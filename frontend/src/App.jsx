@@ -9,6 +9,18 @@ import {
   Leaf,
   ArrowDown,
 } from "lucide-react";
+import posthog from "posthog-js";
+
+// Initialize PostHog for analytics
+if (import.meta.env.VITE_POSTHOG_API_KEY) {
+  posthog.init(import.meta.env.VITE_POSTHOG_API_KEY, {
+    api_host: "https://us.posthog.com",
+    loaded: (ph) => {
+      // Track page view on app load
+      ph.capture("app_loaded");
+    },
+  });
+}
 
 // For testing in Claude.ai, we'll use mock mode
 // Use Vite env var in production or fall back to relative paths when hosted on same domain
@@ -214,6 +226,17 @@ function App() {
     return () => clearTimeout(timer);
   }, [isLoading]);
 
+  // Track when specialists are recommended
+  useEffect(() => {
+    if (recommendedProviders.length > 0) {
+      posthog.capture("specialists_recommended", {
+        specialist_count: recommendedProviders.length,
+        specialist_names: recommendedProviders.map((p) => p.name),
+        specialist_ids: recommendedProviders.map((p) => p.id),
+      });
+    }
+  }, [recommendedProviders]);
+
   // conversation loading state
   if (isLoadingConversation) {
     return (
@@ -340,6 +363,12 @@ function App() {
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
+
+    // Track message event in PostHog
+    posthog.capture("message_sent", {
+      message_length: input.length,
+      has_providers: recommendedProviders.length > 0,
+    });
 
     const userMessage = input;
     setMessages((prev) => [...prev, { sender: "user", text: userMessage }]);
