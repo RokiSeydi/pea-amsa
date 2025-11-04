@@ -14,7 +14,7 @@ import posthog from "posthog-js";
 // Initialize PostHog for analytics
 if (import.meta.env.VITE_POSTHOG_API_KEY) {
   posthog.init(import.meta.env.VITE_POSTHOG_API_KEY, {
-    api_host: "https://us.posthog.com",
+    api_host: "https://eu.posthog.com",
     loaded: (ph) => {
       // Track page view on app load
       ph.capture("app_loaded");
