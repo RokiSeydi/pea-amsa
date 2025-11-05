@@ -202,6 +202,7 @@ When you first message a specialist, the backend:
 - Vite
 - Tailwind CSS
 - Lucide React (icons)
+- PostHog (analytics)
 
 **Backend:**
 
@@ -210,10 +211,66 @@ When you first message a specialist, the backend:
 - Redis (node-redis client)
 - dotenv
 
+## 📊 Cohort Tracking with UTM Parameters
+
+Track different cohorts of users with UTM parameters. All UTM params are automatically captured in PostHog analytics.
+
+### URL Format
+
+```
+https://pea-amsa.vercel.app?utm_source=COHORT_NAME&utm_campaign=CAMPAIGN&utm_medium=MEDIUM&utm_content=CONTENT
+```
+
+### Example URLs
+
+**Medical Student Cohort A:**
+```
+https://pea-amsa.vercel.app?utm_source=med_students_cohort_a&utm_campaign=november_pilot&utm_medium=email
+```
+
+**King's College London Students:**
+```
+https://pea-amsa.vercel.app?utm_source=kcl&utm_campaign=amsa_partnership&utm_medium=internal
+```
+
+**AMSA Chapter Promotion:**
+```
+https://pea-amsa.vercel.app?utm_source=amsa_chapter&utm_campaign=wellness_week&utm_medium=social
+```
+
+### Available Parameters
+
+- `utm_source`: Cohort identifier (e.g., `med_students_cohort_a`, `kcl`, `amsa_chapter`)
+- `utm_medium`: Marketing channel (e.g., `email`, `social`, `internal`, `direct`)
+- `utm_campaign`: Campaign name (e.g., `november_pilot`, `wellness_week`)
+- `utm_content`: Additional content tag for A/B testing
+- `utm_term`: Search term or variation identifier
+
+### Analytics Tracking
+
+UTM parameters are automatically:
+1. ✅ Captured from URL on page load
+2. ✅ Stored in sessionStorage for persistence across reloads
+3. ✅ Attached to all PostHog events (app_loaded, message_sent, specialists_recommended)
+4. ✅ Used to segment users in PostHog dashboards
+
+### PostHog Setup
+
+All UTM parameters appear as user properties in PostHog, allowing you to:
+- Filter events by cohort
+- Track conversion rates per cohort
+- Compare engagement across different student groups
+- Create custom dashboards for each campaign
+
 ## 📝 Recent Updates
 
 ### November 2025
 
+- ✅ Added UTM parameter tracking for cohort analytics
+- ✅ Implemented staggered message reveals for better UX
+- ✅ Fixed specialist matching logic (no more false recommendations)
+- ✅ Added specialty-matched voucher offering strategy
+- ✅ Enhanced system prompt with contextual follow-ups and feedback collection
 - ✅ Added Redis persistence for all conversations
 - ✅ Fixed provider context passing bug
 - ✅ Added page refresh persistence

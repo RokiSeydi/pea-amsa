@@ -22,6 +22,42 @@ if (import.meta.env.VITE_POSTHOG_API_KEY) {
   });
 }
 
+// Parse UTM parameters from URL for cohort tracking
+const getUTMParams = () => {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    utm_source: params.get("utm_source"),
+    utm_medium: params.get("utm_medium"),
+    utm_campaign: params.get("utm_campaign"),
+    utm_content: params.get("utm_content"),
+    utm_term: params.get("utm_term"),
+  };
+};
+
+// Store UTM params in sessionStorage for persistence across page reloads
+const storeUTMParams = () => {
+  const utm = getUTMParams();
+  if (Object.values(utm).some((val) => val !== null)) {
+    sessionStorage.setItem("utm_params", JSON.stringify(utm));
+    // Also identify user in PostHog with UTM data
+    if (posthog) {
+      posthog.setPersonProperties(utm);
+    }
+  }
+};
+
+// Initialize UTM tracking on page load
+storeUTMParams();
+
+// Helper function to add UTM params to analytics events
+const captureWithUTM = (eventName, properties = {}) => {
+  const utmParams = JSON.parse(sessionStorage.getItem("utm_params") || "{}");
+  posthog.capture(eventName, {
+    ...properties,
+    ...utmParams,
+  });
+};
+
 // For testing in Claude.ai, we'll use mock mode
 // Use Vite env var in production or fall back to relative paths when hosted on same domain
 const API_URL = import.meta.env?.VITE_API_URL || ""; // set VITE_API_URL in Vercel to your backend URL if separate
@@ -244,7 +280,7 @@ function App() {
   // Track when specialists are recommended
   useEffect(() => {
     if (recommendedProviders.length > 0) {
-      posthog.capture("specialists_recommended", {
+      captureWithUTM("specialists_recommended", {
         specialist_count: recommendedProviders.length,
         specialist_names: recommendedProviders.map((p) => p.name),
         specialist_ids: recommendedProviders.map((p) => p.id),
@@ -379,8 +415,8 @@ function App() {
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
-    // Track message event in PostHog
-    posthog.capture("message_sent", {
+    // Track message event in PostHog with UTM params
+    captureWithUTM("message_sent", {
       message_length: input.length,
       has_providers: recommendedProviders.length > 0,
     });
